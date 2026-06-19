@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import logging
 import os
@@ -509,8 +510,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "من اطلاعات را استخراج می‌کنم، قبل از ثبت پیش‌نمایش می‌دهم "
             "و پس از تأیید آن را به فایل همان ماه اضافه می‌کنم.\n\n"
             "دستورها:\n"
-            "/export دریافت فایل ماه جاری\n"
-            "/export 2026-06 دریافت فایل یک ماه مشخص\n"
+            "/export دریافت فایل کامل ماه جاری\n"
+            "/export 2026-06 دریافت فایل کامل یک ماه مشخص\n"
             "/months نمایش ماه‌های موجود\n"
             "/status وضعیت فایل ماه جاری\n"
             "/cancel لغو فاکتور در انتظار\n"
@@ -771,23 +772,14 @@ async def invoice_callback(
         )
 
         await query.edit_message_text(
-            "✅ فاکتور به فایل ماهانه اضافه شد.\n"
+            "✅ فاکتور در فایل اصلی همان ماه ثبت شد.\n"
             f"ماه فایل: {month_key}\n"
             f"شناسه ثبت: {record_id}\n"
             f"تعداد کل فاکتورهای این ماه: {invoice_count}\n"
-            f"تعداد کل اقلام این ماه: {item_count}"
+            f"تعداد کل اقلام این ماه: {item_count}\n\n"
+            f"برای دریافت فایل کامل بنویس:\n/export {month_key}"
             f"{fallback_text}"
         )
-
-        with excel_path.open("rb") as file_handle:
-            await query.message.reply_document(
-                document=file_handle,
-                filename=excel_path.name,
-                caption=(
-                    f"فایل به‌روزشده فاکتورهای ماه {month_key}\n"
-                    f"تعداد فاکتورها: {invoice_count}"
-                ),
-            )
     except Exception as exc:
         logger.exception("Excel save failed: %s", exc)
         await query.edit_message_text(
