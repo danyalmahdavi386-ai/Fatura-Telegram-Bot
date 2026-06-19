@@ -54,6 +54,7 @@ MONTHLY_DIR.mkdir(parents=True, exist_ok=True)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+BUILD_VERSION = "2026-06-19-secure-monthly-v3"
 ALLOWED_USER_ID_RAW = os.getenv("ALLOWED_USER_ID", "").strip()
 ALLOWED_USER_ID = int(ALLOWED_USER_ID_RAW) if ALLOWED_USER_ID_RAW else None
 
@@ -514,6 +515,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             "/export 2026-06 دریافت فایل کامل یک ماه مشخص\n"
             "/months نمایش ماه‌های موجود\n"
             "/status وضعیت فایل ماه جاری\n"
+            "/version نمایش نسخه فعال بات\n"
             "/cancel لغو فاکتور در انتظار\n"
             "/myid نمایش شناسه تلگرام"
         )
@@ -536,6 +538,25 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     context.user_data.pop("pending_source_name", None)
     await update.effective_message.reply_text("فاکتور در انتظار لغو شد.")
 
+
+
+async def version_command(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    user_id = update.effective_user.id if update.effective_user else None
+    if not authorized_user(user_id):
+        await update.effective_message.reply_text("اجازه دسترسی نداری.")
+        return
+
+    await update.effective_message.reply_text(
+        "✅ نسخه فعال بات\n\n"
+        f"{BUILD_VERSION}\n"
+        f"مدل: {GEMINI_MODEL}\n"
+        f"پوشه ماهانه: {MONTHLY_DIR}\n"
+        "ارسال خودکار اکسل پس از ثبت: خاموش\n"
+        "نمایش خطای خام و کلید: خاموش"
+    )
 
 async def export_command(
     update: Update,
@@ -814,6 +835,7 @@ def main() -> None:
 
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("myid", myid_command))
+    application.add_handler(CommandHandler("version", version_command))
     application.add_handler(CommandHandler("status", status_command))
     application.add_handler(CommandHandler("months", months_command))
     application.add_handler(CommandHandler("export", export_command))
@@ -825,7 +847,8 @@ def main() -> None:
     application.add_error_handler(error_handler)
 
     logger.info(
-        "Bot started | model=%s | railway=%s | monthly_dir=%s",
+        "Bot started | version=%s | model=%s | railway=%s | monthly_dir=%s",
+        BUILD_VERSION,
         GEMINI_MODEL,
         IS_RAILWAY,
         MONTHLY_DIR,
