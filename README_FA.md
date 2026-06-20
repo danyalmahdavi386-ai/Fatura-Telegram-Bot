@@ -1,78 +1,66 @@
-# بات تلگرام تبدیل عکس فاکتور به اکسل با Gemini
+# Telegram Diagnostic Bot
 
-این پروژه برای استقرار مستقیم از GitHub روی Railway آماده شده است.
+این پروژه فقط برای تشخیص مشکل اتصال Telegram و Railway است.
 
-## عملکرد
+## متغیرهای لازم
 
-1. کاربر مجاز عکس فاکتور یا رسید را برای بات تلگرام می‌فرستد.
-2. تصویر برای Gemini API ارسال می‌شود.
-3. اطلاعات اصلی و ردیف‌های فاکتور به‌صورت ساختاریافته استخراج می‌شوند.
-4. پیش‌نمایش برای تأیید نمایش داده می‌شود.
-5. پس از تأیید، اطلاعات در فایل اکسل تجمعی ذخیره می‌شوند.
-6. فایل اکسل به تلگرام ارسال می‌شود.
+فقط این متغیر ضروری است:
 
-## فایل‌های اصلی
+```text
+TELEGRAM_BOT_TOKEN=توکن جدید بات
+```
+
+این متغیر اختیاری است:
+
+```text
+ALLOWED_USER_ID=شناسه عددی تلگرام
+```
+
+برای آزمایش اول بهتر است `ALLOWED_USER_ID` را حذف کنی.
+
+## استقرار
+
+فایل‌ها را مستقیماً در ریشه یک مخزن GitHub قرار بده:
 
 ```text
 bot.py
 requirements.txt
 railway.json
 .python-version
-.env.example
 .gitignore
-data/.gitkeep
 ```
 
-## متغیرهای لازم در Railway
+فرمان اجرا:
 
 ```text
-TELEGRAM_BOT_TOKEN=توکن بات تلگرام
-GEMINI_API_KEY=کلید Gemini API
-GEMINI_MODEL=gemini-2.5-flash
-ALLOWED_USER_ID=شناسه عددی تلگرام
-DATA_DIR=/data
-LOG_DIR=/data/logs
+python -u bot.py
 ```
 
-در اجرای اول می‌توان `ALLOWED_USER_ID` را تعریف نکرد. سپس دستور `/myid`
-را در بات ارسال کرد و عدد برگشتی را به Variables در Railway افزود.
-
-## ذخیره دائمی
-
-برای حفظ فایل اکسل بعد از استقرار مجدد، یک Volume در Railway به سرویس متصل کن.
-
-Mount Path:
+## پیام صحیح در Railway Logs
 
 ```text
-/data
+DIAGNOSTIC_BOT_STARTED
 ```
 
-فایل نهایی در این مسیر ذخیره می‌شود:
-
-```text
-/data/invoices.xlsx
-```
-
-## فرمان اجرا
-
-فایل `railway.json` فرمان زیر را اجرا می‌کند:
-
-```text
-python bot.py
-```
-
-## دستورهای بات
+## آزمایش در تلگرام
 
 ```text
 /start
+/ping
+/version
 /myid
-/export
-/cancel
 ```
 
-## امنیت
+پاسخ صحیح:
 
-- کلید Gemini و توکن تلگرام را داخل GitHub قرار نده.
-- آن‌ها را فقط در بخش Variables ریلوی وارد کن.
-- فایل `.env` را در مخزن عمومی بارگذاری نکن.
-- پس از پیدا کردن شناسه تلگرام، `ALLOWED_USER_ID` را حتماً تنظیم کن.
+```text
+🏓 PONG
+نسخه: telegram-diagnostic-v1
+```
+
+## نتیجه‌گیری
+
+- اگر `DIAGNOSTIC_BOT_STARTED` در Logs نیست، برنامه در Railway شروع نشده است.
+- اگر خطای `InvalidToken` یا `Unauthorized` دیده شود، توکن اشتباه یا لغوشده است.
+- اگر خطای `Conflict` دیده شود، نسخه دیگری از همان بات با همان توکن فعال است.
+- اگر پیام شروع در Logs وجود دارد و `/ping` پاسخ می‌دهد، اتصال Railway و Telegram سالم است و مشکل فقط در پروژه اصلی است.
